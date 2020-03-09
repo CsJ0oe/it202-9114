@@ -8,8 +8,7 @@
  *     mais attention aux inconvénient des tableaux de threads
  *     (consommation mémoire, cout d'allocation, ...).
  */
-typedef void * thread_t; // On peut se servir de l'adresse de l'élément de la file
-//(?! si on le réenfile, y a-t-il un pb, car l'id change !?)
+typedef void * thread_t;
 
 /* recuperer l'identifiant du thread courant.
  */
@@ -38,7 +37,8 @@ extern int thread_join(thread_t thread, void **retval);
  * cet attribut dans votre interface tant que votre thread_exit()
  * n'est pas correctement implémenté (il ne doit jamais retourner).
  */
-extern void thread_exit(void *retval) __attribute__ ((__noreturn__));
+ // TODO : Retirer les marques de commentaires une fois la fonction implémentée.
+extern void thread_exit(void *retval) /*__attribute__ ((__noreturn__))*/;
 
 /* Interface possible pour les mutex */
 typedef struct thread_mutex { int dummy; } thread_mutex_t;
