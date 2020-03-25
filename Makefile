@@ -1,11 +1,20 @@
 CFLAGS= -Llib/bin -lthread -Ilib/include
-all:build/main
+all:libr build/main
+
 build:
 	mkdir build
-build/main: build tst/main.c
-	gcc tst/main.c $(CFLAGS) -o build/main 
+
+build/main:libr build tst/main.c
+	gcc tst/main.c $(CFLAGS) -o build/main
+
 check:build
 	./build/main
+
+libr:
+	$(MAKE) -C ./lib/
+
+clean:
+	rm -rf ./build ./lib/build ./lib/bin
 
 #valgrind:
 #pthreads:
