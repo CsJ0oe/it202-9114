@@ -3,12 +3,31 @@
 
 #ifndef USE_PTHREAD
 
+#include <sys/queue.h>
+#include <ucontext.h>
+
+/*La structure proprement dite (à compléter au fur et à mesure des besoins)
+ */
+typedef struct THREAD{
+    int no_thread;
+    ucontext_t context;
+
+    SLIST_ENTRY(THREAD) next;
+} THREAD;
+
 /* identifiant de thread
  * NB: pourra être un entier au lieu d'un pointeur si ca vous arrange,
  *     mais attention aux inconvénient des tableaux de threads
  *     (consommation mémoire, cout d'allocation, ...).
  */
-typedef void * thread_t;
+typedef THREAD * thread_t;
+
+
+
+
+void thread_pool__init();
+
+thread_t thread_init(ucontext_t cont);
 
 /* recuperer l'identifiant du thread courant.
  */
