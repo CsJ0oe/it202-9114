@@ -12,8 +12,10 @@ static int count = 0;
 
 thread_t thread_init(ucontext_t cont){
     thread_t newt = malloc(sizeof(THREAD));
+    printf("wallah je crée \n");
     newt->no_thread = count ++;
     newt->context = cont;
+    printf("crea finie \n"); 
     return newt;
 }
 
@@ -69,6 +71,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 extern int thread_yield(void){
     printf("1 \n");
     if (current == NULL){
+	printf("dans le if \n");
 	thread_pool_init();
     }
     printf("%p \n", current);
@@ -90,7 +93,7 @@ extern int thread_yield(void){
     swapcontext(&(tempo->context), &(next_thread->context));
     printf("6 \n");
     current = tempo;
-    return 1;
+    return 0;
 }
 
 /* attendre la fin d'exécution d'un thread.
