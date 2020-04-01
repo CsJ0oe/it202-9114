@@ -1,6 +1,6 @@
 CFLAGS= -Lobj -lthread -Iinclude
 
-all: install check
+all: install
 
 install: obj/libthread.a obj/main
 	gcc test/01-main.c 					$(CFLAGS) -o install/bin/01-main
