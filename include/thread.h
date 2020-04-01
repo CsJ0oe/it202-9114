@@ -9,10 +9,12 @@
 /*La structure proprement dite (à compléter au fur et à mesure des besoins)
  */
 typedef struct THREAD{
-    int no_thread;
+    int thread_num;
+    // TODO : parent id
+    // TODO : state
     ucontext_t context;
-
-    SLIST_ENTRY(THREAD) next;
+    int valgrind_stackid;
+    STAILQ_ENTRY(THREAD) next;
 } THREAD;
 
 /* identifiant de thread
@@ -20,14 +22,7 @@ typedef struct THREAD{
  *     mais attention aux inconvénient des tableaux de threads
  *     (consommation mémoire, cout d'allocation, ...).
  */
-typedef THREAD * thread_t;
-
-
-
-
-void thread_pool__init();
-
-thread_t thread_init(ucontext_t cont);
+typedef THREAD* thread_t;
 
 /* recuperer l'identifiant du thread courant.
  */
