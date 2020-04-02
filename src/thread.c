@@ -26,6 +26,7 @@ static void* schedule_fifo_func(void* arg) {
         // TODO: CREATE PROPER FREE
         swapcontext(&schedule_fifo, &(thread_current->context));
      }
+    return arg; // to suppress warnings
 }
 
 __attribute__((constructor)) static void constr() {
@@ -106,9 +107,9 @@ extern int thread_yield(void){
  * la valeur renvoyée par le thread est placée dans *retval.
  * si retval est NULL, la valeur de retour est ignorée.
  */
-extern int thread_join(thread_t thread, void **retval){
-    return 0;
-}
+//extern int thread_join(thread_t thread, void **retval){
+//    return 0;
+//}
 
 /* terminer le thread courant en renvoyant la valeur de retour retval.
  * cette fonction ne retourne jamais.
@@ -119,13 +120,13 @@ extern int thread_join(thread_t thread, void **retval){
  * n'est pas correctement implémenté (il ne doit jamais retourner).
  */
  // TODO : Retirer les marques de commentaires une fois la fonction implémentée.
-extern void thread_exit(void *retval) {
-}
+//extern void thread_exit(void *retval) {
+//}
 
 /********************************* UTILS **************************************/
  
 
-static void newcontext(ucontext_t* newuc, void *(*func)(void *), void *funcarg, ucontext_t* link, int* valgrind_stackid) {
+static void newcontext(ucontext_t* newuc, void *(*func)(void*), void *funcarg, ucontext_t* link, int* valgrind_stackid) {
     getcontext(newuc);
     // TODO: newuc.uc_stack.ss_size = 64*1024;
     newuc->uc_stack.ss_sp = malloc(newuc->uc_stack.ss_size);
