@@ -7,7 +7,7 @@ install: build obj/libthread.a obj
 	mkdir -p install/lib
 	mkdir -p install/bin
 	cp obj/libthread.a install/lib/libthread.a
-	cp obj/01-main	   install/lib/01-main
+	cp obj/01-main	   install/bin/01-main
 
 build: obj obj/libthread.a obj/main
 	gcc test/01-main.c 						$(CFLAGS) -o obj/01-main
