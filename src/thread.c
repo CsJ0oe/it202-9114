@@ -12,6 +12,7 @@
 STAILQ_HEAD(, THREAD) thread_queue = STAILQ_HEAD_INITIALIZER(thread_queue);
 STAILQ_HEAD(, THREAD) thread_finished_queue = STAILQ_HEAD_INITIALIZER(thread_finished_queue);
 THREAD* thread_current = NULL;
+THREAD* main_thread = NULL;
 int thread_count = 0;
 ucontext_t schedule_fifo;
 int schedule_fifo_valgrind_stackid;
@@ -49,7 +50,7 @@ __attribute__((constructor)) void constr() {
     schedule_fifo.uc_link = NULL;
     makecontext(&schedule_fifo, (void(*)(void))schedule_fifo_func, 0);
     // init main thread
-    THREAD* main_thread = malloc(sizeof(THREAD));
+    main_thread = malloc(sizeof(THREAD));
     main_thread->thread_num = thread_count++;
     main_thread->isMain = 1;
     getcontext(&(main_thread->context));
@@ -62,8 +63,6 @@ __attribute__((constructor)) void constr() {
 
 
 __attribute__((destructor)) static void destr() {
-    // free current thread (normalment le main ???)
-    free(thread_current); // not needed any more ?
     // free other threads
     while (!STAILQ_EMPTY(&thread_queue)) {
         printf("*************** IS THIS STILL NEEDED ? ******************");
@@ -71,17 +70,19 @@ __attribute__((destructor)) static void destr() {
         STAILQ_REMOVE_HEAD(&thread_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
         if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
-        free(next_thread);
+        if (!(next_thread->isMain)) free(next_thread);
     }
     while (!STAILQ_EMPTY(&thread_finished_queue)) {
         THREAD* next_thread = STAILQ_FIRST(&thread_finished_queue);
         STAILQ_REMOVE_HEAD(&thread_finished_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
         if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
-        free(next_thread);
+        if (!(next_thread->isMain)) free(next_thread);
     }
     VALGRIND_STACK_DEREGISTER(schedule_fifo_valgrind_stackid);
     free(schedule_fifo.uc_stack.ss_sp);
+    // free current thread (normalment le main ???)
+    free(main_thread); // not needed any more ?
 }
 
 
