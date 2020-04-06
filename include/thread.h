@@ -2,7 +2,6 @@
 #define __THREAD_H__
 
 #ifndef USE_PTHREAD
-#define _XOPEN_SOURCE
 #include <sys/queue.h>
 #include <ucontext.h>
 
@@ -14,6 +13,7 @@ typedef struct THREAD{
     void* retval;
     enum { ACTIVE, FINISHED } state;
     ucontext_t context;
+    int isMain;
     int valgrind_stackid;
     STAILQ_ENTRY(THREAD) next;
 } THREAD;

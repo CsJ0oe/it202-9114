@@ -1,4 +1,3 @@
-#define _XOPEN_SOURCE
 #include "thread.h"
 #include <signal.h>
 #include <stdlib.h>
@@ -31,15 +30,28 @@ void* schedule_fifo_func(void* arg) {
     return arg; // to suppress warnings
 }
 
+void* thread_return_wrapper(void *(*func)(void*), void* arg) {
+    thread_exit(func(arg));
+    return arg; // to suppress warnings
+}
+
 __attribute__((constructor)) void constr() {
     // init queue
     STAILQ_INIT(&thread_queue);
     STAILQ_INIT(&thread_finished_queue);
     // init schedule
-    newcontext(&schedule_fifo, schedule_fifo_func, NULL, NULL, &schedule_fifo_valgrind_stackid);
+    getcontext(&schedule_fifo);
+    // TODO: newuc->uc_stack.ss_size = 64*1024;
+    schedule_fifo.uc_stack.ss_size = 64*1024;
+    schedule_fifo.uc_stack.ss_sp = malloc(schedule_fifo.uc_stack.ss_size);
+    schedule_fifo_valgrind_stackid = VALGRIND_STACK_REGISTER(schedule_fifo.uc_stack.ss_sp,
+                        schedule_fifo.uc_stack.ss_sp + schedule_fifo.uc_stack.ss_size);
+    schedule_fifo.uc_link = NULL;
+    makecontext(&schedule_fifo, (void(*)(void))schedule_fifo_func, 0);
     // init main thread
     THREAD* main_thread = malloc(sizeof(THREAD));
     main_thread->thread_num = thread_count++;
+    main_thread->isMain = 1;
     getcontext(&(main_thread->context));
     STAILQ_INSERT_TAIL(&thread_queue, main_thread, next);
     thread_current = main_thread;
@@ -51,20 +63,21 @@ __attribute__((constructor)) void constr() {
 
 __attribute__((destructor)) static void destr() {
     // free current thread (normalment le main ???)
-    free(thread_current);
+    free(thread_current); // not needed any more ?
     // free other threads
     while (!STAILQ_EMPTY(&thread_queue)) {
+        printf("*************** IS THIS STILL NEEDED ? ******************");
         THREAD* next_thread = STAILQ_FIRST(&thread_queue);
         STAILQ_REMOVE_HEAD(&thread_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
-        free(next_thread->context.uc_stack.ss_sp);
+        if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
         free(next_thread);
     }
     while (!STAILQ_EMPTY(&thread_finished_queue)) {
         THREAD* next_thread = STAILQ_FIRST(&thread_finished_queue);
         STAILQ_REMOVE_HEAD(&thread_finished_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
-        free(next_thread->context.uc_stack.ss_sp);
+        if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
         free(next_thread);
     }
     VALGRIND_STACK_DEREGISTER(schedule_fifo_valgrind_stackid);
@@ -89,7 +102,17 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     // n crée d'abord le contexte et enfile ensuite l'élément contenant ce contexte
     THREAD* new_thread = (THREAD*)malloc(sizeof(THREAD));
     new_thread->thread_num = thread_count++;
-    newcontext(&(new_thread->context), func, funcarg, &schedule_fifo, &(new_thread->valgrind_stackid));
+    new_thread->isMain = 0;
+    // NEW CONTEXT
+    getcontext(&(new_thread->context));
+    // TODO: newuc->uc_stack.ss_size = 64*1024;
+    new_thread->context.uc_stack.ss_size = 64*1024;
+    new_thread->context.uc_stack.ss_sp = malloc(new_thread->context.uc_stack.ss_size);
+    new_thread->valgrind_stackid = VALGRIND_STACK_REGISTER(new_thread->context.uc_stack.ss_sp,
+                        new_thread->context.uc_stack.ss_sp + new_thread->context.uc_stack.ss_size);
+    new_thread->context.uc_link = &schedule_fifo;
+    makecontext(&(new_thread->context), (void(*)(void))thread_return_wrapper, 2, (void(*)(void))func, funcarg);
+    // 
     STAILQ_INSERT_TAIL(&thread_queue, new_thread, next);
     *newthread = new_thread;
     // swap to the new thread

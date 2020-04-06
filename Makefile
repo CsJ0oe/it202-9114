@@ -38,7 +38,7 @@ check: obj/main
 	./obj/main
 
 valgrind: obj/main
-	valgrind --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
+	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
 
 clean:
 	rm -rf obj/ install/
