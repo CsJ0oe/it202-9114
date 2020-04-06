@@ -2,7 +2,7 @@
 #define __THREAD_H__
 
 #ifndef USE_PTHREAD
-
+#define _XOPEN_SOURCE
 #include <sys/queue.h>
 #include <ucontext.h>
 
@@ -11,7 +11,8 @@
 typedef struct THREAD{
     int thread_num;
     // TODO : parent id
-    // TODO : state
+    void* retval;
+    enum { ACTIVE, FINISHED } state;
     ucontext_t context;
     int valgrind_stackid;
     STAILQ_ENTRY(THREAD) next;

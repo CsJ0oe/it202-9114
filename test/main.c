@@ -2,27 +2,50 @@
 #include <assert.h>
 #include "thread.h"
 
-/* test du thread_self et yield du main seul.
+/* test du join, avec ou sans thread_exit.
  *
  * le programme doit retourner correctement.
  * valgrind doit être content.
  *
  * support nécessaire:
- * - thread_yield() depuis et vers le main
- * - thread_self() depuis le main
+ * - thread_create()
+ * - thread_exit()
+ * - retour sans thread_exit()
+ * - thread_join() avec récupération valeur de retour, avec et sans thread_exit()
  */
+
+static void * thfunc(void *dummy __attribute__((unused)))
+{
+  thread_exit((void*)0xdeadbeef);
+  return NULL; /* unreachable, shut up the compiler */
+}
+
+static void * thfunc2(void *dummy __attribute__((unused)))
+{
+	  thread_exit((void*)0xbeefdead);
+
+  return (void*) 0xbeefdead;
+}
 
 int main()
 {
-  int err, i;
+  thread_t th, th2;
+  int err;
+  void *res = NULL;
 
-  for(i=0; i<10; i++) {
-    printf("le main yield tout seul\n");
-    err = thread_yield();
-    assert(!err);
-  }
+  err = thread_create(&th, thfunc, NULL);
+  assert(!err);
+  err = thread_create(&th2, thfunc2, NULL);
+  assert(!err);
 
-  printf("le main est %p\n", (void*) thread_self());
+  err = thread_join(th, &res);
+  assert(!err);
+  assert(res == (void*) 0xdeadbeef);
 
+  err = thread_join(th2, &res);
+  assert(!err);
+  assert(res == (void*) 0xbeefdead);
+
+  printf("join OK\n");
   return 0;
 }
