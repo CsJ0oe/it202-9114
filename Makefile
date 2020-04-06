@@ -44,10 +44,10 @@ obj/main: include/thread.h obj/libthread.a test/main.c
 obj:
 	mkdir obj
 
-check: obj/main
+check: build obj/main
 	./obj/main
 
-valgrind: obj/main
+valgrind: build obj/main
 	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
 
 clean:

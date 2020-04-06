@@ -53,6 +53,7 @@ __attribute__((constructor)) void constr() {
     main_thread = malloc(sizeof(THREAD));
     main_thread->thread_num = thread_count++;
     main_thread->isMain = 1;
+    main_thread->state = ACTIVE;
     getcontext(&(main_thread->context));
     STAILQ_INSERT_TAIL(&thread_queue, main_thread, next);
     thread_current = main_thread;
@@ -104,6 +105,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     THREAD* new_thread = (THREAD*)malloc(sizeof(THREAD));
     new_thread->thread_num = thread_count++;
     new_thread->isMain = 0;
+    new_thread->state = ACTIVE;
     // NEW CONTEXT
     getcontext(&(new_thread->context));
     // TODO: newuc->uc_stack.ss_size = 64*1024;
