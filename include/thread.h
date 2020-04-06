@@ -53,7 +53,7 @@ extern int thread_join(thread_t thread, void **retval);
  * n'est pas correctement implémenté (il ne doit jamais retourner).
  */
  // TODO : Retirer les marques de commentaires une fois la fonction implémentée.
-extern void thread_exit(void *retval) /*__attribute__ ((__noreturn__))*/;
+extern void thread_exit(void *retval) __attribute__ ((__noreturn__));
 
 /* Interface possible pour les mutex */
 typedef struct thread_mutex { int dummy; } thread_mutex_t;

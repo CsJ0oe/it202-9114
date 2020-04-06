@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <valgrind/valgrind.h>
 #include <assert.h>
+#include <stdint.h>
 
 // TODO : more input checks
 // TODO : verify system function returns
@@ -16,10 +17,9 @@ THREAD* main_thread = NULL;
 int thread_count = 0;
 ucontext_t schedule_fifo;
 int schedule_fifo_valgrind_stackid;
-////// functions
-void newcontext(ucontext_t* newuc, void *(*func)(void *), void *funcarg, ucontext_t* link, int* valgrind_stackid);
 
 
+// functions
 void* schedule_fifo_func(void* arg) {
     while (!STAILQ_EMPTY(&thread_queue)) {
         THREAD* next_thread = STAILQ_FIRST(&thread_queue);
@@ -27,7 +27,9 @@ void* schedule_fifo_func(void* arg) {
         thread_current = next_thread;
         // TODO: CREATE PROPER FREE
         swapcontext(&schedule_fifo, &(thread_current->context));
-     }
+    }
+    // workaround for 12-join-main (dont let the main return before other threads)
+    swapcontext(&schedule_fifo, &(main_thread->context));
     return arg; // to suppress warnings
 }
 
@@ -81,7 +83,7 @@ __attribute__((destructor)) static void destr() {
         if (!(next_thread->isMain)) free(next_thread);
     }
     VALGRIND_STACK_DEREGISTER(schedule_fifo_valgrind_stackid);
-    if (thread_current == main_thread) free(schedule_fifo.uc_stack.ss_sp);
+    free(schedule_fifo.uc_stack.ss_sp);
     //free current thread (normalment le main ???)
     free(main_thread); // not needed any more ?
 }
@@ -163,18 +165,6 @@ extern void thread_exit(void *retval) {
     //VALGRIND_STACK_DEREGISTER(thread_current->valgrind_stackid);
     //free(thread_current->context.uc_stack.ss_sp);
     STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next);
-    setcontext(&schedule_fifo);
-}
-
-/********************************* UTILS **************************************/
- 
-
-void newcontext(ucontext_t* newuc, void *(*func)(void*), void *funcarg, ucontext_t* link, int* valgrind_stackid) {
-    getcontext(newuc);
-    // TODO: newuc->uc_stack.ss_size = 64*1024;
-    newuc->uc_stack.ss_size = 64*1024;
-    newuc->uc_stack.ss_sp = malloc(newuc->uc_stack.ss_size);
-    *valgrind_stackid = VALGRIND_STACK_REGISTER(newuc->uc_stack.ss_sp, newuc->uc_stack.ss_sp + newuc->uc_stack.ss_size);
-    newuc->uc_link = link;
-    makecontext(newuc, (void(*)(void))func, 1, funcarg);
+    swapcontext(&(thread_current->context), &schedule_fifo);
+    exit(0);
 }

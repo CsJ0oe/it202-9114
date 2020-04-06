@@ -43,5 +43,7 @@ int main()
   assert(!err);
 
   thread_exit((void*) 0xdeadbeef);
+  printf("main KO\n");
+
   return 0; /* unreachable, shut up the compiler */
 }
