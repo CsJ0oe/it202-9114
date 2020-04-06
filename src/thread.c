@@ -81,8 +81,8 @@ __attribute__((destructor)) static void destr() {
         if (!(next_thread->isMain)) free(next_thread);
     }
     VALGRIND_STACK_DEREGISTER(schedule_fifo_valgrind_stackid);
-    free(schedule_fifo.uc_stack.ss_sp);
-    // free current thread (normalment le main ???)
+    if (thread_current == main_thread) free(schedule_fifo.uc_stack.ss_sp);
+    //free current thread (normalment le main ???)
     free(main_thread); // not needed any more ?
 }
 
