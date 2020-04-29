@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdint.h>
 
+#ifndef USE_PTHREAD
 // TODO : more input checks
 // TODO : verify system function returns
 
@@ -168,3 +169,5 @@ extern void thread_exit(void *retval) {
     swapcontext(&(thread_current->context), &schedule_fifo);
     exit(0);
 }
+
+#endif
