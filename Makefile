@@ -1,9 +1,13 @@
-CFLAGS= -Lobj -lthread${suffix} -Iinclude -Wall -Werror -Wextra
+TFLAGS := -Lobj -Iinclude -Wall -Werror -Wextra
+CFLAGS := $(TFLAGS) -lthread 
+suffix = 
 
+.PHONY: all pthreads build install
 
 all: build install
 
-install: build obj/libthread.a obj
+
+install: build obj/libthread$(suffix).a obj
 	mkdir -p install
 	mkdir -p install/lib
 	mkdir -p install/bin
@@ -19,7 +23,7 @@ install: build obj/libthread.a obj
 	cp obj/32-switch-many-join${suffix}			install/bin/32-switch-many-join${suffix}
 	cp obj/51-fibonacci${suffix}					install/bin/51-fibonacci${suffix}
 
-build: obj obj/libthread${suffix}.a obj/main
+build: obj obj/libthread$(suffix).a obj/main$(suffix)
 	gcc test/01-main.c 						$(CFLAGS) -o obj/01-main${suffix}
 	gcc test/02-switch.c 					$(CFLAGS) -o obj/02-switch${suffix}
 	gcc test/11-join.c 						$(CFLAGS) -o obj/11-join${suffix}
@@ -33,14 +37,17 @@ build: obj obj/libthread${suffix}.a obj/main
 	#gcc test/61-mutex.c 					$(CFLAGS) -o obj/61-mutex${suffix}
 	#gcc test/62-mutex.c 					$(CFLAGS) -o obj/62-mutex${suffix}
 
-obj/thread${suffix}.o: src/thread.c
+obj/thread$(suffix).o: src/thread.c
 	gcc -c src/thread.c $(CFLAGS) -o obj/thread${suffix}.o
 
-obj/libthread${suffix}.a: obj/thread${suffix}.o
-	ar rcs obj/libthread${suffix}.a obj/thread${suffix}.o
 
-obj/main: include/thread.h obj/libthread${suffix}.a test/main.c
+obj/libthread$(suffix).a: obj/thread$(suffix).o
+	ar rcs obj/libthread$(suffix).a obj/thread$(suffix).o
+
+
+obj/main$(suffix): include/thread.h obj/libthread${suffix}.a test/main.c
 	gcc test/main.c $(CFLAGS) -o obj/main${suffix}
+
 
 obj:
 	mkdir obj
@@ -54,13 +61,17 @@ valgrind: build obj/main
 clean:
 	rm -rf obj/ install/
 
-pthreads: CFLAGS += -DUSE_PTHREAD -lpthread
-pthreads: suffix = _pthread
-pthreads: all
+
+#-DUSE_PTHREAD -lpthread
+
+pthreads:
+	$(MAKE) CFLAGS="$(TFLAGS) -lthread_pthread -DUSE_PTHREAD -lpthread" suffix=_pthread all
 
 
-
-#graphs:
+graphs:
+	make pthreads
+	make
+	python3 ./src/graphics_drawing.py
 
 
 
