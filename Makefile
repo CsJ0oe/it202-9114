@@ -52,11 +52,12 @@ obj/main$(suffix): include/thread.h obj/libthread${suffix}.a test/main.c
 obj:
 	mkdir obj
 
-check: build obj/main
-	./obj/main
+check: all obj/main
+	./obj/51-fibonacci
 
 valgrind: build obj/main
-	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
+	#valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
+	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/51-fibonacci 23
 
 clean:
 	rm -rf obj/ install/

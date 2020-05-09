@@ -21,6 +21,24 @@ int schedule_fifo_valgrind_stackid;
 
 
 // functions
+void schedule_fifo_goto() {
+    // On enfile
+    THREAD* thread_old = thread_current;
+    THREAD* thread_next = main_thread;
+    switch (thread_current->state) {
+        case FINISHED: STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next); break;
+        default:       STAILQ_INSERT_TAIL(&thread_queue, thread_current, next); break;
+    }
+    if (!STAILQ_EMPTY(&thread_queue)) {
+        thread_next = STAILQ_FIRST(&thread_queue);
+        STAILQ_REMOVE_HEAD(&thread_queue, next);
+    }
+    thread_current = thread_next;
+    swapcontext(&(thread_old->context), &(thread_next->context));
+}
+
+// functions
+/*
 void* schedule_fifo_func(void* arg) {
     while (!STAILQ_EMPTY(&thread_queue)) {
         THREAD* next_thread = STAILQ_FIRST(&thread_queue);
@@ -33,6 +51,7 @@ void* schedule_fifo_func(void* arg) {
     swapcontext(&schedule_fifo, &(main_thread->context));
     return arg; // to suppress warnings
 }
+*/
 
 void* thread_return_wrapper(void *(*func)(void*), void* arg) {
     thread_exit(func(arg));
@@ -44,6 +63,7 @@ __attribute__((constructor)) void constr() {
     STAILQ_INIT(&thread_queue);
     STAILQ_INIT(&thread_finished_queue);
     // init schedule
+    /*
     getcontext(&schedule_fifo);
     // TODO: newuc->uc_stack.ss_size = 64*1024;
     schedule_fifo.uc_stack.ss_size = 64*1024;
@@ -52,24 +72,24 @@ __attribute__((constructor)) void constr() {
                         schedule_fifo.uc_stack.ss_sp + schedule_fifo.uc_stack.ss_size);
     schedule_fifo.uc_link = NULL;
     makecontext(&schedule_fifo, (void(*)(void))schedule_fifo_func, 0);
+    */
     // init main thread
     main_thread = malloc(sizeof(THREAD));
     main_thread->thread_num = thread_count++;
     main_thread->isMain = 1;
     main_thread->state = ACTIVE;
     getcontext(&(main_thread->context));
-    STAILQ_INSERT_TAIL(&thread_queue, main_thread, next);
+    //STAILQ_INSERT_TAIL(&thread_queue, main_thread, next);
     thread_current = main_thread;
     // go to schedule
-    swapcontext(&(main_thread->context), &schedule_fifo);
-
+    //schedule_fifo_goto();
 }
 
 
 __attribute__((destructor)) static void destr() {
     // free other threads
     while (!STAILQ_EMPTY(&thread_queue)) {
-        printf("*************** IS THIS STILL NEEDED ? ******************");
+        printf("*************** IS THIS STILL NEEDED ? ******************\n");
         THREAD* next_thread = STAILQ_FIRST(&thread_queue);
         STAILQ_REMOVE_HEAD(&thread_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
@@ -122,8 +142,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     STAILQ_INSERT_TAIL(&thread_queue, new_thread, next);
     *newthread = new_thread;
     // swap to the new thread
-    STAILQ_INSERT_TAIL(&thread_queue, thread_current, next);
-    swapcontext(&(thread_current->context), &schedule_fifo);
+    schedule_fifo_goto();
     // RETURN OK
     return 0;
 
@@ -132,10 +151,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 /* passer la main à un autre thread.
  */
 extern int thread_yield(void){
-    // On enfile
-    STAILQ_INSERT_TAIL(&thread_queue, thread_current, next);
-    swapcontext(&(thread_current->context), &schedule_fifo);
-    // RETURN OK
+    schedule_fifo_goto();
     return 0;
 }
 
@@ -165,8 +181,7 @@ extern void thread_exit(void *retval) {
     thread_current->retval = retval;
     //VALGRIND_STACK_DEREGISTER(thread_current->valgrind_stackid);
     //free(thread_current->context.uc_stack.ss_sp);
-    STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next);
-    swapcontext(&(thread_current->context), &schedule_fifo);
+    schedule_fifo_goto();
     exit(0);
 }
 
