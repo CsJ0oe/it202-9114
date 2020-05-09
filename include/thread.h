@@ -10,10 +10,11 @@
 typedef struct THREAD{
     int thread_num;
     // TODO : parent id
+    struct THREAD* waitingForMe;
     void* retval;
-    enum { ACTIVE, FINISHED } state;
-    ucontext_t context;
     int isMain;
+    enum { ACTIVE, JOINING, FINISHED } state;
+    ucontext_t context;
     int valgrind_stackid;
     STAILQ_ENTRY(THREAD) next;
 } THREAD;

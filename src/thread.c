@@ -26,8 +26,17 @@ void schedule_fifo_goto() {
     THREAD* thread_old = thread_current;
     THREAD* thread_next = main_thread;
     switch (thread_current->state) {
-        case FINISHED: STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next); break;
-        default:       STAILQ_INSERT_TAIL(&thread_queue, thread_current, next); break;
+        case FINISHED: {
+            STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next);
+            if (thread_current->waitingForMe != NULL)
+                STAILQ_INSERT_TAIL(&thread_queue, thread_current->waitingForMe, next);
+        } break;
+        case JOINING: {
+            //STAILQ_INSERT_TAIL(&thread_joining_queue, thread_current, next);
+        } break;
+        default: {
+            STAILQ_INSERT_TAIL(&thread_queue, thread_current, next);
+        } break;
     }
     if (!STAILQ_EMPTY(&thread_queue)) {
         thread_next = STAILQ_FIRST(&thread_queue);
@@ -162,7 +171,14 @@ extern int thread_yield(void){
 extern int thread_join(thread_t thread, void **retval){
     // TODO : optimz for passif wait
     if (thread == NULL) return -1;
-    while(thread->state != FINISHED) thread_yield();
+    while ((thread->state != FINISHED) && (thread->waitingForMe != thread_current)) {
+        //thread_yield();
+        if (thread->waitingForMe == NULL) {
+            thread->waitingForMe = thread_current;
+            thread_current->state = JOINING;
+            schedule_fifo_goto();
+        } else thread_yield();
+    }
     if (retval != NULL) *retval = thread->retval;
     return 0;
 }

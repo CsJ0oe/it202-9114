@@ -57,7 +57,7 @@ check: all obj/main
 
 valgrind: build obj/main
 	#valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
-	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/51-fibonacci 23
+	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/51-fibonacci 8
 
 clean:
 	rm -rf obj/ install/
