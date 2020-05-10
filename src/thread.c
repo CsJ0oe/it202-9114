@@ -18,7 +18,6 @@ STAILQ_HEAD(, THREAD) thread_finished_queue = STAILQ_HEAD_INITIALIZER(thread_fin
 THREAD* thread_current = NULL;
 THREAD* main_thread = NULL;
 int thread_count = 0;
-ucontext_t schedule_fifo;
 int schedule_fifo_valgrind_stackid;
 
 unsigned int
@@ -41,7 +40,9 @@ void schedule_fifo_goto() {
     THREAD* thread_next = main_thread;
     switch (thread_current->state) {
         case FINISHED: {
+            // add struct to be freed later
             STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next);
+            // check if there is a thread waiting for join
             if (thread_current->waitingForMe != NULL)
                 STAILQ_INSERT_TAIL(&thread_queue, thread_current->waitingForMe, next);
         } break;
@@ -113,8 +114,6 @@ __attribute__((destructor)) static void destr() {
         if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
         if (!(next_thread->isMain)) free(next_thread);
     }
-    VALGRIND_STACK_DEREGISTER(schedule_fifo_valgrind_stackid);
-    free(schedule_fifo.uc_stack.ss_sp);
     //free current thread (normalment le main ???)
     free(main_thread); // not needed any more ?
 }
@@ -134,7 +133,7 @@ extern thread_t thread_self(void){
 extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funcarg){  
     if (newthread == NULL) return -1;
     // n crée d'abord le contexte et enfile ensuite l'élément contenant ce contexte
-    THREAD* new_thread = (THREAD*)malloc(sizeof(THREAD));
+    THREAD* new_thread = (THREAD*)malloc(sizeof(THREAD));   
     new_thread->thread_num = thread_count++;
     new_thread->isMain = 0;
     new_thread->state = ACTIVE;
@@ -148,7 +147,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     new_thread->context.uc_stack.ss_sp = malloc(new_thread->context.uc_stack.ss_size);
     new_thread->valgrind_stackid = VALGRIND_STACK_REGISTER(new_thread->context.uc_stack.ss_sp,
                         new_thread->context.uc_stack.ss_sp + new_thread->context.uc_stack.ss_size);
-    new_thread->context.uc_link = &schedule_fifo;
+    new_thread->context.uc_link = NULL;
     makecontext(&(new_thread->context), (void(*)(void))thread_return_wrapper, 2, (void(*)(void))func, funcarg);
     // 
     STAILQ_INSERT_TAIL(&thread_queue, new_thread, next);
@@ -182,8 +181,6 @@ extern int thread_join(thread_t thread, void **retval){
 extern void thread_exit(void *retval) {
     thread_current->state = FINISHED;
     thread_current->retval = retval;
-    //VALGRIND_STACK_DEREGISTER(thread_current->valgrind_stackid);
-    //free(thread_current->context.uc_stack.ss_sp);
     schedule_fifo_goto();
     exit(0);
 }

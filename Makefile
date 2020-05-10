@@ -55,7 +55,7 @@ check: all
 
 valgrind: build
 	#valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
-	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/71-preemption
+	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/51-fibonacci 20
 
 clean:
 	rm -rf obj/ install/
