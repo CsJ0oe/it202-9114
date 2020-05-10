@@ -56,6 +56,7 @@ __attribute__((constructor)) void constr() {
     main_thread->thread_num = thread_count++;
     main_thread->isMain = 1;
     main_thread->state = ACTIVE;
+    main_thread->waitingForMe = NULL;
     getcontext(&(main_thread->context));
     //STAILQ_INSERT_TAIL(&thread_queue, main_thread, next);
     thread_current = main_thread;
@@ -132,10 +133,8 @@ extern int thread_yield(void){
 }
 
 extern int thread_join(thread_t thread, void **retval){
-    // TODO : optimz for passif wait
     if (thread == NULL) return -1;
     while ((thread->state != FINISHED) && (thread->waitingForMe != thread_current)) {
-        //thread_yield();
         if (thread->waitingForMe == NULL) {
             thread->waitingForMe = thread_current;
             thread_current->state = JOINING;
