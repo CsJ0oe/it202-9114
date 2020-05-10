@@ -60,8 +60,9 @@ void schedule_fifo_goto() {
     }
     thread_current = thread_next;
     // handling signals
+    int i;
     if (thread_current->signals)
-        for (int i = 0; i < 32; ++i)
+        for (i = 0; i < 32; ++i)
             if (thread_current->signals & (1<<i))
                 ((void (*)(int))(thread_current->signal_handlers[i]))(i);
     // set & swap
