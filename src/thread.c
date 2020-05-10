@@ -21,13 +21,13 @@ int thread_count = 0;
 int schedule_fifo_valgrind_stackid;
 
 unsigned int
-preemption_utimer(unsigned int useconds)
+preemption_timer(unsigned int seconds)
 {
   struct itimerval new;
   new.it_interval.tv_usec = 0;
   new.it_interval.tv_sec = 0;
-  new.it_value.tv_usec = useconds;
-  new.it_value.tv_sec = 0;
+  new.it_value.tv_usec = 0;
+  new.it_value.tv_sec = seconds;
   return setitimer (ITIMER_REAL, &new, NULL);
 
 }
@@ -65,7 +65,7 @@ void schedule_fifo_goto() {
             if (thread_current->signals & (1<<i))
                 ((void (*)(int))(thread_current->signal_handlers[i]))(i);
     // set & swap
-    preemption_utimer(5000);
+    preemption_timer(1);
     swapcontext(&(thread_old->context), &(thread_next->context));
 }
 
