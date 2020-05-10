@@ -32,9 +32,10 @@ void schedule_fifo_goto() {
                 STAILQ_INSERT_TAIL(&thread_queue, thread_current->waitingForMe, next);
         } break;
         case JOINING: {
-            //STAILQ_INSERT_TAIL(&thread_joining_queue, thread_current, next);
         } break;
-        default: {
+        case MUTEX: {
+        } break;
+        default: { // ACTIVE
             STAILQ_INSERT_TAIL(&thread_queue, thread_current, next);
         } break;
     }
@@ -46,42 +47,10 @@ void schedule_fifo_goto() {
     swapcontext(&(thread_old->context), &(thread_next->context));
 }
 
-// functions
-/*
-void* schedule_fifo_func(void* arg) {
-    while (!STAILQ_EMPTY(&thread_queue)) {
-        THREAD* next_thread = STAILQ_FIRST(&thread_queue);
-        STAILQ_REMOVE_HEAD(&thread_queue, next);
-        thread_current = next_thread;
-        // TODO: CREATE PROPER FREE
-        swapcontext(&schedule_fifo, &(thread_current->context));
-    }
-    // workaround for 12-join-main (dont let the main return before other threads)
-    swapcontext(&schedule_fifo, &(main_thread->context));
-    return arg; // to suppress warnings
-}
-*/
-
-void* thread_return_wrapper(void *(*func)(void*), void* arg) {
-    thread_exit(func(arg));
-    return arg; // to suppress warnings
-}
-
 __attribute__((constructor)) void constr() {
     // init queue
     STAILQ_INIT(&thread_queue);
     STAILQ_INIT(&thread_finished_queue);
-    // init schedule
-    /*
-    getcontext(&schedule_fifo);
-    // TODO: newuc->uc_stack.ss_size = 64*1024;
-    schedule_fifo.uc_stack.ss_size = 64*1024;
-    schedule_fifo.uc_stack.ss_sp = malloc(schedule_fifo.uc_stack.ss_size);
-    schedule_fifo_valgrind_stackid = VALGRIND_STACK_REGISTER(schedule_fifo.uc_stack.ss_sp,
-                        schedule_fifo.uc_stack.ss_sp + schedule_fifo.uc_stack.ss_size);
-    schedule_fifo.uc_link = NULL;
-    makecontext(&schedule_fifo, (void(*)(void))schedule_fifo_func, 0);
-    */
     // init main thread
     main_thread = malloc(sizeof(THREAD));
     main_thread->thread_num = thread_count++;
@@ -99,11 +68,11 @@ __attribute__((destructor)) static void destr() {
     // free other threads
     while (!STAILQ_EMPTY(&thread_queue)) {
         printf("*************** IS THIS STILL NEEDED ? ******************\n");
-        THREAD* next_thread = STAILQ_FIRST(&thread_queue);
-        STAILQ_REMOVE_HEAD(&thread_queue, next);
-        VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
-        if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
-        if (!(next_thread->isMain)) free(next_thread);
+        //THREAD* next_thread = STAILQ_FIRST(&thread_queue);
+        //STAILQ_REMOVE_HEAD(&thread_queue, next);
+        //VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
+        //if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
+        //if (!(next_thread->isMain)) free(next_thread);
     }
     while (!STAILQ_EMPTY(&thread_finished_queue)) {
         THREAD* next_thread = STAILQ_FIRST(&thread_finished_queue);
@@ -121,16 +90,15 @@ __attribute__((destructor)) static void destr() {
 
 /********************************* THREAD **************************************/
 
+void* thread_return_wrapper(void *(*func)(void*), void* arg) {
+    thread_exit(func(arg));
+    return arg; // to suppress warnings
+}
 
-/* recuperer l'identifiant du thread courant.
- */
 extern thread_t thread_self(void){
     return thread_current;
 }
 
-/* creer un nouveau thread qui va exécuter la fonction func avec l'argument funcarg.
- * renvoie 0 en cas de succès, -1 en cas d'erreur.
- */
 extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funcarg){  
     if (newthread == NULL) return -1;
     // n crée d'abord le contexte et enfile ensuite l'élément contenant ce contexte
@@ -138,6 +106,7 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     new_thread->thread_num = thread_count++;
     new_thread->isMain = 0;
     new_thread->state = ACTIVE;
+    new_thread->waitingForMe = NULL;
     // NEW CONTEXT
     getcontext(&(new_thread->context));
     // TODO: newuc->uc_stack.ss_size = 64*1024;
@@ -157,17 +126,11 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
 
 }
 
-/* passer la main à un autre thread.
- */
 extern int thread_yield(void){
     schedule_fifo_goto();
     return 0;
 }
 
-/* attendre la fin d'exécution d'un thread.
- * la valeur renvoyée par le thread est placée dans *retval.
- * si retval est NULL, la valeur de retour est ignorée.
- */
 extern int thread_join(thread_t thread, void **retval){
     // TODO : optimz for passif wait
     if (thread == NULL) return -1;
@@ -183,14 +146,6 @@ extern int thread_join(thread_t thread, void **retval){
     return 0;
 }
 
-/* terminer le thread courant en renvoyant la valeur de retour retval.
- * cette fonction ne retourne jamais.
- *
- * L'attribut noreturn aide le compilateur à optimiser le code de
- * l'application (élimination de code mort). Attention à ne pas mettre
- * cet attribut dans votre interface tant que votre thread_exit()
- * n'est pas correctement implémenté (il ne doit jamais retourner).
- */
  // TODO : Retirer les marques de commentaires une fois la fonction implémentée.
 extern void thread_exit(void *retval) {
     thread_current->state = FINISHED;
@@ -200,5 +155,43 @@ extern void thread_exit(void *retval) {
     schedule_fifo_goto();
     exit(0);
 }
+
+/********************************* MUTEX **************************************/
+
+extern int thread_mutex_init(thread_mutex_t *mutex) {
+    mutex->has_lock = NULL;
+    STAILQ_INIT(&(mutex->waiting_queue));
+    return 0;
+}
+
+extern int thread_mutex_destroy(thread_mutex_t *mutex) {
+    if (!STAILQ_EMPTY(&(mutex->waiting_queue))) printf("mutex destroyed while being used\n");
+    return 0;
+}
+
+extern int thread_mutex_lock(thread_mutex_t *mutex) {
+    do {
+        if (mutex->has_lock == NULL) {
+            mutex->has_lock = thread_current;
+        } else {
+            STAILQ_INSERT_TAIL(&(mutex->waiting_queue), thread_current, next);
+            thread_current->state = MUTEX;
+            thread_yield();
+        }
+    } while (mutex->has_lock != thread_current);
+    return 0;
+}
+
+extern int thread_mutex_unlock(thread_mutex_t *mutex) {
+    mutex->has_lock = NULL;
+    if (!STAILQ_EMPTY(&(mutex->waiting_queue))) {
+        THREAD* next_thread = STAILQ_FIRST(&(mutex->waiting_queue));
+        STAILQ_REMOVE_HEAD(&(mutex->waiting_queue), next);
+        next_thread->state = ACTIVE;
+        STAILQ_INSERT_TAIL(&thread_queue, next_thread, next);
+    }
+    return 0;
+}
+
 
 #endif

@@ -13,7 +13,7 @@ typedef struct THREAD{
     struct THREAD* waitingForMe;
     void* retval;
     int isMain;
-    enum { ACTIVE, JOINING, FINISHED } state;
+    enum { ACTIVE, JOINING, MUTEX, FINISHED } state;
     ucontext_t context;
     int valgrind_stackid;
     STAILQ_ENTRY(THREAD) next;
@@ -57,10 +57,17 @@ extern int thread_join(thread_t thread, void **retval);
 extern void thread_exit(void *retval) __attribute__ ((__noreturn__));
 
 /* Interface possible pour les mutex */
-typedef struct thread_mutex { int dummy; } thread_mutex_t;
+typedef struct thread_mutex {
+	thread_t has_lock;
+	STAILQ_HEAD(, THREAD) waiting_queue;
+} thread_mutex_t;
+
 int thread_mutex_init(thread_mutex_t *mutex);
+
 int thread_mutex_destroy(thread_mutex_t *mutex);
+
 int thread_mutex_lock(thread_mutex_t *mutex);
+
 int thread_mutex_unlock(thread_mutex_t *mutex);
 
 #else /* USE_PTHREAD */

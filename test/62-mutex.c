@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
   }
 
   /* on leur passe la main, ils vont tous terminer */
-  for(i=0; i<nb; i++) {
+  for(i=0; i<nbthrd; i++) {
     thread_yield();
   }
 

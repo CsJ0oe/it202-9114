@@ -34,8 +34,8 @@ build: obj obj/libthread$(suffix).a obj/main$(suffix)
 	gcc test/31-switch-many.c 				$(CFLAGS) -o obj/31-switch-many${suffix}
 	gcc test/32-switch-many-join.c 			$(CFLAGS) -o obj/32-switch-many-join${suffix}
 	gcc test/51-fibonacci.c 				$(CFLAGS) -o obj/51-fibonacci${suffix}
-	#gcc test/61-mutex.c 					$(CFLAGS) -o obj/61-mutex${suffix}
-	#gcc test/62-mutex.c 					$(CFLAGS) -o obj/62-mutex${suffix}
+	gcc test/61-mutex.c 					$(CFLAGS) -o obj/61-mutex${suffix}
+	gcc test/62-mutex.c 					$(CFLAGS) -o obj/62-mutex${suffix}
 
 obj/thread$(suffix).o: src/thread.c
 	gcc -c src/thread.c $(CFLAGS) -o obj/thread${suffix}.o
@@ -57,7 +57,7 @@ check: all obj/main
 
 valgrind: build obj/main
 	#valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
-	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/51-fibonacci 8
+	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/61-mutex 3
 
 clean:
 	rm -rf obj/ install/
