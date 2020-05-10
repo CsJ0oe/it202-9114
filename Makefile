@@ -38,6 +38,7 @@ build: obj obj/libthread$(suffix).a obj/main$(suffix)
 	gcc test/51-fibonacci.c 				$(CFLAGS) -o obj/51-fibonacci${suffix}
 	gcc test/61-mutex.c 					$(CFLAGS) -o obj/61-mutex${suffix}
 	gcc test/62-mutex.c 					$(CFLAGS) -o obj/62-mutex${suffix}
+	gcc test/71-preemption.c 				$(CFLAGS) -o obj/71-preemption${suffix}
 
 obj/thread$(suffix).o: src/thread.c
 	gcc -c src/thread.c $(CFLAGS) -o obj/thread${suffix}.o
@@ -46,20 +47,15 @@ obj/thread$(suffix).o: src/thread.c
 obj/libthread$(suffix).a: obj/thread$(suffix).o
 	ar rcs obj/libthread$(suffix).a obj/thread$(suffix).o
 
-
-obj/main$(suffix): include/thread.h obj/libthread${suffix}.a test/main.c
-	gcc test/main.c $(CFLAGS) -o obj/main${suffix}
-
-
 obj:
 	mkdir obj
 
 check: all obj/main
-	./obj/51-fibonacci
+	./obj/51-fibonacci 26
 
-valgrind: build obj/main
+valgrind: build
 	#valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
-	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/12-join-main
+	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/71-preemption
 
 clean:
 	rm -rf obj/ install/

@@ -5,6 +5,7 @@
 #include <valgrind/valgrind.h>
 #include <assert.h>
 #include <stdint.h>
+#include <sys/time.h>
 
 #ifndef USE_PTHREAD
 // TODO : more input checks
@@ -18,6 +19,18 @@ THREAD* main_thread = NULL;
 int thread_count = 0;
 ucontext_t schedule_fifo;
 int schedule_fifo_valgrind_stackid;
+
+unsigned int
+preemption_utimer(unsigned int useconds)
+{
+  struct itimerval new;
+  new.it_interval.tv_usec = 0;
+  new.it_interval.tv_sec = 0;
+  new.it_value.tv_usec = useconds;
+  new.it_value.tv_sec = 0;
+  return setitimer (ITIMER_REAL, &new, NULL);
+
+}
 
 
 // functions
@@ -44,7 +57,13 @@ void schedule_fifo_goto() {
         STAILQ_REMOVE_HEAD(&thread_queue, next);
     }
     thread_current = thread_next;
+    preemption_utimer(5000);
     swapcontext(&(thread_old->context), &(thread_next->context));
+}
+
+
+void SIG_YIELD (int signo __attribute__((unused))) {
+    thread_yield();
 }
 
 __attribute__((constructor)) void constr() {
@@ -62,6 +81,9 @@ __attribute__((constructor)) void constr() {
     thread_current = main_thread;
     // go to schedule
     //schedule_fifo_goto();
+    // for preemption
+    signal(SIGALRM, SIG_YIELD);
+    //alarm(1);
 }
 
 
