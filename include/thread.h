@@ -4,15 +4,18 @@
 #ifndef USE_PTHREAD
 #include <sys/queue.h>
 #include <ucontext.h>
+#include <stdint.h>
 
 /*La structure proprement dite (à compléter au fur et à mesure des besoins)
  */
 typedef struct THREAD{
     int thread_num;
     // TODO : parent id
-    struct THREAD* waitingForMe;
     void* retval;
     int isMain;
+    uint32_t signals;
+    void* signal_handlers[32];
+    struct THREAD* waitingForMe;
     enum { ACTIVE, JOINING, MUTEX, FINISHED } state;
     ucontext_t context;
     int valgrind_stackid;
@@ -69,6 +72,17 @@ int thread_mutex_destroy(thread_mutex_t *mutex);
 int thread_mutex_lock(thread_mutex_t *mutex);
 
 int thread_mutex_unlock(thread_mutex_t *mutex);
+
+
+/* signals */
+// signal : integer [0-31]
+
+// send signal to thread
+int thread_kill(thread_t thread, int signal);
+
+// set signal handler
+int thread_signal(int signal, void (*handler)(int));
+
 
 #else /* USE_PTHREAD */
 

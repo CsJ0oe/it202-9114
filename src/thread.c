@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdint.h>
 #include <sys/time.h>
+#include <string.h>
 
 #ifndef USE_PTHREAD
 // TODO : more input checks
@@ -57,6 +58,12 @@ void schedule_fifo_goto() {
         STAILQ_REMOVE_HEAD(&thread_queue, next);
     }
     thread_current = thread_next;
+    // handling signals
+    if (thread_current->signals)
+        for (int i = 0; i < 32; ++i)
+            if (thread_current->signals & (1<<i))
+                ((void (*)(int))(thread_current->signal_handlers[i]))(i);
+    // set & swap
     preemption_utimer(5000);
     swapcontext(&(thread_old->context), &(thread_next->context));
 }
@@ -76,6 +83,8 @@ __attribute__((constructor)) void constr() {
     main_thread->isMain = 1;
     main_thread->state = ACTIVE;
     main_thread->waitingForMe = NULL;
+    main_thread->signals = 0;
+    memset(main_thread->signal_handlers, 0, sizeof(main_thread->signal_handlers));
     getcontext(&(main_thread->context));
     //STAILQ_INSERT_TAIL(&thread_queue, main_thread, next);
     thread_current = main_thread;
@@ -130,6 +139,8 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     new_thread->isMain = 0;
     new_thread->state = ACTIVE;
     new_thread->waitingForMe = NULL;
+    new_thread->signals = 0;
+    memset(new_thread->signal_handlers, 0, sizeof(new_thread->signal_handlers));
     // NEW CONTEXT
     getcontext(&(new_thread->context));
     // TODO: newuc->uc_stack.ss_size = 64*1024;
@@ -214,5 +225,20 @@ extern int thread_mutex_unlock(thread_mutex_t *mutex) {
     return 0;
 }
 
+
+
+// send signal to thread
+extern int thread_kill(thread_t thread, int signal) {
+    if (signal >= 32) return -1;
+    thread->signals |= 1<<signal;
+    return 0;
+}
+
+// set signal handler
+extern int thread_signal(int signal, void (*handler)(int)) {
+    if (signal >= 32) return -1;
+    thread_current->signal_handlers[signal] = handler;
+    return 0;
+}
 
 #endif

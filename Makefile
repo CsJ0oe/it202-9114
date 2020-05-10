@@ -25,7 +25,7 @@ install: build obj/libthread$(suffix).a obj
 	cp obj/61-mutex${suffix}					install/bin/61-mutex${suffix}
 	cp obj/62-mutex${suffix}					install/bin/62-mutex${suffix}
 
-build: obj obj/libthread$(suffix).a obj/main$(suffix)
+build: obj obj/libthread$(suffix).a
 	gcc test/01-main.c 						$(CFLAGS) -o obj/01-main${suffix}
 	gcc test/02-switch.c 					$(CFLAGS) -o obj/02-switch${suffix}
 	gcc test/11-join.c 						$(CFLAGS) -o obj/11-join${suffix}
@@ -50,7 +50,7 @@ obj/libthread$(suffix).a: obj/thread$(suffix).o
 obj:
 	mkdir obj
 
-check: all obj/main
+check: all
 	./obj/51-fibonacci 26
 
 valgrind: build
