@@ -12,18 +12,18 @@ install: build obj/libthread$(suffix).a obj
 	mkdir -p install/lib
 	mkdir -p install/bin
 	cp obj/libthread${suffix}.a 				install/lib/libthread${suffix}.a
-	cp obj/01-main${suffix}	   					install/bin/01-main${suffix}
-	cp obj/02-switch${suffix}					install/bin/02-switch${suffix}
-	cp obj/11-join${suffix}						install/bin/11-join${suffix}
+	cp obj/01-main${suffix}	   				install/bin/01-main${suffix}
+	cp obj/02-switch${suffix}				install/bin/02-switch${suffix}
+	cp obj/11-join${suffix}					install/bin/11-join${suffix}
 	cp obj/12-join-main${suffix}				install/bin/12-join-main${suffix}
 	cp obj/21-create-many${suffix}				install/bin/21-create-many${suffix}
-	cp obj/22-create-many-recursive${suffix}	install/bin/22-create-many-recursive${suffix}
+	cp obj/22-create-many-recursive${suffix}		install/bin/22-create-many-recursive${suffix}
 	cp obj/23-create-many-once${suffix}			install/bin/23-create-many-once${suffix}
 	cp obj/31-switch-many${suffix}				install/bin/31-switch-many${suffix}
 	cp obj/32-switch-many-join${suffix}			install/bin/32-switch-many-join${suffix}
 	cp obj/51-fibonacci${suffix}				install/bin/51-fibonacci${suffix}
-	cp obj/61-mutex${suffix}					install/bin/61-mutex${suffix}
-	cp obj/62-mutex${suffix}					install/bin/62-mutex${suffix}
+	cp obj/61-mutex${suffix}				install/bin/61-mutex${suffix}
+	cp obj/62-mutex${suffix}				install/bin/62-mutex${suffix}
 
 build: obj obj/libthread$(suffix).a
 	gcc test/01-main.c 					$(CFLAGS) -o obj/01-main${suffix}
