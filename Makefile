@@ -21,6 +21,7 @@ install: build obj/libthread$(suffix).a obj
 	cp obj/23-create-many-once${suffix}			install/bin/23-create-many-once${suffix}
 	cp obj/31-switch-many${suffix}				install/bin/31-switch-many${suffix}
 	cp obj/32-switch-many-join${suffix}			install/bin/32-switch-many-join${suffix}
+	cp obj/33-switch-many-cascade${suffix}			install/bin/33-switch-many-cascade${suffix}
 	cp obj/51-fibonacci${suffix}				install/bin/51-fibonacci${suffix}
 	cp obj/61-mutex${suffix}				install/bin/61-mutex${suffix}
 	cp obj/62-mutex${suffix}				install/bin/62-mutex${suffix}
@@ -35,6 +36,7 @@ build: obj obj/libthread$(suffix).a
 	gcc test/23-create-many-once.c 				$(CFLAGS) -o obj/23-create-many-once${suffix}
 	gcc test/31-switch-many.c 				$(CFLAGS) -o obj/31-switch-many${suffix}
 	gcc test/32-switch-many-join.c 				$(CFLAGS) -o obj/32-switch-many-join${suffix}
+	gcc test/33-switch-many-cascade.c 			$(CFLAGS) -o obj/33-switch-many-cascade${suffix}
 	gcc test/51-fibonacci.c 				$(CFLAGS) -o obj/51-fibonacci${suffix}
 	gcc test/61-mutex.c 					$(CFLAGS) -o obj/61-mutex${suffix}
 	gcc test/62-mutex.c 					$(CFLAGS) -o obj/62-mutex${suffix}
@@ -51,12 +53,11 @@ obj/libthread$(suffix).a: obj/thread$(suffix).o
 obj:
 	mkdir obj
 
-check: all
-	./obj/51-fibonacci 26
+check: build
+	./obj/33-switch-many-cascade 20 100
 
 valgrind: build
-	#valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/main
-	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/72-signal
+	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/33-switch-many-cascade 20 100
 
 clean:
 	rm -rf obj/ install/
