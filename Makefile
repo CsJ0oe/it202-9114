@@ -54,10 +54,10 @@ obj:
 	mkdir obj
 
 check: build
-	./obj/33-switch-many-cascade 20 100
+	./obj/51-fibonacci 25
 
 valgrind: build
-	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/33-switch-many-cascade 20 100
+	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/51-fibonacci 25
 
 clean:
 	rm -rf obj/ install/
