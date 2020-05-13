@@ -211,7 +211,7 @@ extern void thread_exit(void *retval) {
     thread_current->state = FINISHED;
     thread_current->retval = retval;
     // unblock interruptions
-    sigprocmask(SIG_SETMASK, &oldSet, NULL);
+    //sigprocmask(SIG_SETMASK, &oldSet, NULL);
     schedule_fifo_goto();
     exit(0);
 }

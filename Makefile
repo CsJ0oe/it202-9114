@@ -57,7 +57,7 @@ check: build
 	./obj/51-fibonacci 27
 
 valgrind: build
-	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/62-mutex 20 20
+	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/01-main
 
 clean:
 	rm -rf obj/ install/
