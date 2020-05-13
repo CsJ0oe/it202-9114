@@ -131,10 +131,10 @@ __attribute__((destructor)) static void destr() {
         STAILQ_REMOVE_HEAD(&thread_finished_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
         if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
-        free(next_thread);
+        if (!(next_thread->isMain)) free(next_thread);
     }
-    //free current thread (normalment le main ???)
-    //free(main_thread); // not needed any more ?
+    //free main thread
+    free(main_thread);
 }
 
 
