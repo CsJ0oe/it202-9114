@@ -108,6 +108,10 @@ __attribute__((constructor)) void constr() {
 
 
 __attribute__((destructor)) static void destr() {
+    // block interruptions
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, NULL);
     // free other threads
     while (!STAILQ_EMPTY(&thread_queue)) {
         printf("*************** IS THIS STILL NEEDED ? ******************\n");
@@ -211,7 +215,7 @@ extern void thread_exit(void *retval) {
     thread_current->state = FINISHED;
     thread_current->retval = retval;
     // unblock interruptions
-    //sigprocmask(SIG_SETMASK, &oldSet, NULL);
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     schedule_fifo_goto();
     exit(0);
 }
