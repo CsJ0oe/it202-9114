@@ -63,8 +63,10 @@ void schedule_fifo_goto() {
     int i;
     if (thread_current->signals)
         for (i = 0; i < 32; ++i)
-            if (thread_current->signals & (1<<i))
+            if (((thread_current->signals & (1<<i))) && (thread_current->signal_handlers[i]!=NULL)) { 
                 ((void (*)(int))(thread_current->signal_handlers[i]))(i);
+                thread_current->signals &= (0<<i);
+             }
     // set & swap
     preemption_timer(1);
     swapcontext(&(thread_old->context), &(thread_next->context));
