@@ -6,10 +6,13 @@ import numpy as np
 
 test_list = ["01-main", "02-switch", "11-join", "12-join-main", "21-create-many", "22-create-many-recursive", "23-create-many-once", "31-switch-many", "32-switch-many-join", "51-fibonacci"]
 arg_list = [(4,1), (5,1), (6,1), (7,2), (8,2), (9,2)] #tests which need n arguments to be given !!! THIS LIST IS SORTED FOR PERFORMANCES !!!
-arg = "10" #TODO: improve the choice of argument (depending on the test)
+arg = []
+for i in range(1,1001):
+    arg.append(i)
+arg_test = 10
 directory = "./install/bin/"
 
-def print_graph():
+def print_graph_test():
     suffix = "_pthread"
     length = len(test_list)
     res = []
@@ -22,7 +25,7 @@ def print_graph():
 
         if arg_list[arg_pointer][0] == i:
             for j in range(arg_list[arg_pointer][1]):
-                argument += arg + " "
+                argument += str(arg[1000]) + " "
             arg_pointer += 1
             
                 
@@ -42,10 +45,20 @@ def print_graph():
     plt.bar(range(length), res, width = width_, color = 'yellow', edgecolor = 'blue', linewidth = 2)
     plt.bar([x + width_ for x in range(length)], res_pthread, width = width_, color = 'red', edgecolor = 'blue', linewidth = 2)
     plt.show()
+    
+def print_graph_thread():
+    length = len(arg)
+    res = []
+    
+    for i in range(length):
+        argument = " "
+                            
+        tempo = tm.clock_gettime(tm.CLOCK_MONOTONIC)
+        os.system(directory + test_list[9] + argument)
+        tempo = tm.clock_gettime(tm.CLOCK_MONOTONIC) - tempo
+        res += [tempo]
+    plt.plot(res)
+    plt.show()
 
-
-
-
-
-print_graph()
+print_graph_thread()
         
