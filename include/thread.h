@@ -16,7 +16,7 @@ typedef struct THREAD{
     uint32_t signals;
     void* signal_handlers[32];
     struct THREAD* waitingForMe;
-    enum { ACTIVE, JOINING, MUTEX, FINISHED } state;
+    enum { ACTIVE, JOINING, MUTEX, FINISHED, DEAD } state;
     ucontext_t context;
     int valgrind_stackid;
     STAILQ_ENTRY(THREAD) next;

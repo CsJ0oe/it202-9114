@@ -48,8 +48,13 @@ void schedule_fifo_goto() {
             // add struct to be freed later
             STAILQ_INSERT_TAIL(&thread_finished_queue, thread_current, next);
             // check if there is a thread waiting for join
-            if (thread_current->waitingForMe != NULL)
+            if (thread_current->waitingForMe != NULL) {
                 STAILQ_INSERT_TAIL(&thread_queue, thread_current->waitingForMe, next);
+                thread_current->waitingForMe = NULL;
+            }
+            thread_current->state = DEAD;
+        } break;
+        case DEAD: {
         } break;
         case JOINING: {
         } break;
@@ -126,10 +131,10 @@ __attribute__((destructor)) static void destr() {
         STAILQ_REMOVE_HEAD(&thread_finished_queue, next);
         VALGRIND_STACK_DEREGISTER(next_thread->valgrind_stackid);
         if (!(next_thread->isMain)) free(next_thread->context.uc_stack.ss_sp);
-        if (!(next_thread->isMain)) free(next_thread);
+        free(next_thread);
     }
     //free current thread (normalment le main ???)
-    free(main_thread); // not needed any more ?
+    //free(main_thread); // not needed any more ?
 }
 
 
@@ -192,7 +197,7 @@ extern int thread_join(thread_t thread, void **retval){
     sigset_t filledSet;
     sigfillset(&filledSet);
     sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
-    while ((thread->state != FINISHED) && (thread->waitingForMe != thread_current)) {
+    while ((thread->state != DEAD) && (thread->waitingForMe != thread_current)) {
         if (thread->waitingForMe == NULL) {
             thread->waitingForMe = thread_current;
             thread_current->state = JOINING;
@@ -207,15 +212,8 @@ extern int thread_join(thread_t thread, void **retval){
 
  // TODO : Retirer les marques de commentaires une fois la fonction implémentée.
 extern void thread_exit(void *retval) {
-    // block interruptions
-    sigset_t oldSet;
-    sigset_t filledSet;
-    sigfillset(&filledSet);
-    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     thread_current->state = FINISHED;
     thread_current->retval = retval;
-    // unblock interruptions
-    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     schedule_fifo_goto();
     exit(0);
 }
