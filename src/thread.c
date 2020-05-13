@@ -33,9 +33,13 @@ preemption_timer(unsigned int seconds)
 
 }
 
-
 // functions
 void schedule_fifo_goto() {
+    // block interruptions
+    sigset_t oldSet;
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     // On enfile
     THREAD* thread_old = thread_current;
     THREAD* thread_next = main_thread;
@@ -69,12 +73,10 @@ void schedule_fifo_goto() {
                 thread_current->signals &= (0<<i);
              }
     // set & swap
-    preemption_timer(50000);
-    int x = swapcontext(&(thread_old->context), &(thread_next->context));
-    if (x != 0) {
-        printf("XD\n");
-        exit(0);
-    }
+    preemption_timer(5000);
+    swapcontext(&(thread_old->context), &(thread_next->context));
+    // unblock interruptions
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
 }
 
 
@@ -140,6 +142,11 @@ extern thread_t thread_self(void){
 
 extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funcarg){  
     if (newthread == NULL) return -1;
+    // block interruptions
+    sigset_t oldSet;
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     // n crée d'abord le contexte et enfile ensuite l'élément contenant ce contexte
     THREAD* new_thread = (THREAD*)malloc(sizeof(THREAD));   
     new_thread->thread_num = thread_count++;
@@ -160,6 +167,8 @@ extern int thread_create(thread_t *newthread, void *(*func)(void *), void *funca
     // 
     STAILQ_INSERT_TAIL(&thread_queue, new_thread, next);
     *newthread = new_thread;
+    // unblock interruptions
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     // swap to the new thread
     schedule_fifo_goto();
     // RETURN OK
@@ -174,6 +183,11 @@ extern int thread_yield(void){
 
 extern int thread_join(thread_t thread, void **retval){
     if (thread == NULL) return -1;
+    // block interruptions
+    sigset_t oldSet;
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     while ((thread->state != FINISHED) && (thread->waitingForMe != thread_current)) {
         if (thread->waitingForMe == NULL) {
             thread->waitingForMe = thread_current;
@@ -182,13 +196,22 @@ extern int thread_join(thread_t thread, void **retval){
         } else thread_yield();
     }
     if (retval != NULL) *retval = thread->retval;
+    // unblock interruptions
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     return 0;
 }
 
  // TODO : Retirer les marques de commentaires une fois la fonction implémentée.
 extern void thread_exit(void *retval) {
+    // block interruptions
+    sigset_t oldSet;
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     thread_current->state = FINISHED;
     thread_current->retval = retval;
+    // unblock interruptions
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     schedule_fifo_goto();
     exit(0);
 }
@@ -207,6 +230,11 @@ extern int thread_mutex_destroy(thread_mutex_t *mutex) {
 }
 
 extern int thread_mutex_lock(thread_mutex_t *mutex) {
+    // block interruptions
+    sigset_t oldSet;
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     do {
         if (mutex->has_lock == NULL) {
             mutex->has_lock = thread_current;
@@ -216,10 +244,17 @@ extern int thread_mutex_lock(thread_mutex_t *mutex) {
             thread_yield();
         }
     } while (mutex->has_lock != thread_current);
+    // unblock interruptions
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     return 0;
 }
 
 extern int thread_mutex_unlock(thread_mutex_t *mutex) {
+    // block interruptions
+    sigset_t oldSet;
+    sigset_t filledSet;
+    sigfillset(&filledSet);
+    sigprocmask(SIG_SETMASK, &filledSet, &oldSet);
     mutex->has_lock = NULL;
     if (!STAILQ_EMPTY(&(mutex->waiting_queue))) {
         THREAD* next_thread = STAILQ_FIRST(&(mutex->waiting_queue));
@@ -227,6 +262,8 @@ extern int thread_mutex_unlock(thread_mutex_t *mutex) {
         next_thread->state = ACTIVE;
         STAILQ_INSERT_TAIL(&thread_queue, next_thread, next);
     }
+    // unblock interruptions
+    sigprocmask(SIG_SETMASK, &oldSet, NULL);
     return 0;
 }
 
