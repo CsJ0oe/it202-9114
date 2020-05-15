@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import time as tm
 import os
 import numpy as np
+import copy
 
 
 test_list = ["01-main", "02-switch", "11-join", "12-join-main", "21-create-many", "22-create-many-recursive", "23-create-many-once", "31-switch-many", "32-switch-many-join", "51-fibonacci"]
@@ -9,7 +10,7 @@ arg_list = [(4,1), (5,1), (6,1), (7,2), (8,2), (9,2)] #tests which need n argume
 arg = []
 for i in range(1,1001):
     arg.append(i)
-arg_test = 10
+arg_test = 5
 directory = "./install/bin/"
 
 def print_graph_test():
@@ -51,14 +52,46 @@ def print_graph_thread():
     res = []
     
     for i in range(length):
-        argument = " "
-                            
+        argument = " " + str(i) + " "
         tempo = tm.clock_gettime(tm.CLOCK_MONOTONIC)
-        os.system(directory + test_list[9] + argument)
+        os.system(directory + test_list[arg_test] + argument)
         tempo = tm.clock_gettime(tm.CLOCK_MONOTONIC) - tempo
         res += [tempo]
-    plt.plot(res)
+   # final_res = copy.deepcopy(res)
+   # for i in range(10,len(res)-10):
+   #     value = 0
+   #     for j in range(20):
+   #         value += res[i-10+j]
+   #     final_res[i] = value/20
+    final_res = []
+    for i in range(0,1000,20):
+        value = 0
+        for j in range(20):
+            value += res[i + j]
+        final_res += [value]
+    plt.plot(final_res)
+    plt.show()
+    
+def print_graph_pthread():
+    length = len(arg)
+    res = []
+    
+    for i in range(length):
+        argument = " " + str(i) + " "
+        suffix = "_pthread"
+        tempo1 = tm.clock_gettime(tm.CLOCK_MONOTONIC_RAW)
+        os.system(directory + test_list[arg_test] + suffix + argument)
+        tempo2 = tm.clock_gettime(tm.CLOCK_MONOTONIC_RAW)
+        tempo = tempo2 - tempo1
+        res += [tempo]
+    final_res = []
+    for i in range(0,1000,20):
+        value = 0
+        for j in range(20):
+            value += res[i + j]
+        final_res += [value]
+    plt.plot(final_res)
     plt.show()
 
-print_graph_thread()
+print_graph_pthread()
         
