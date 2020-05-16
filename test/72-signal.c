@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <assert.h>
 
-void handle_sigint(int i __attribute__((unused)))
+void handle_sigint(int i)
 {
-  printf("Caught signal \n");
+    printf("Caught signal %d \n", i);
 }
 
 static void* thfunc(void *id __attribute__((unused)))
@@ -12,6 +12,7 @@ static void* thfunc(void *id __attribute__((unused)))
   thread_yield();
   thread_yield();
   thread_signal(0, handle_sigint);
+  thread_signal(3, handle_sigint);
   thread_yield();
   thread_yield();
   return NULL;
@@ -26,6 +27,7 @@ int main()
   assert(!err);
 
   thread_kill(th1, 0);
+  thread_kill(th1, 3);
   thread_yield();
   thread_yield();
   
