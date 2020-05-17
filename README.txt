@@ -1,10 +1,10 @@
 Pour compiler la bibliothèque de thread et installer celle-ci, ainsi que les tests
-dans le dossier "install/bin/", exécuter "make".
+dans le dossier "install/", exécuter "make".
 _________________________________________________________________________________________________________
 
 Pour compiler la bibliothèque avec pthread, exécuter "make pthreads".
-Cette commande créera également les tests de cette bibliothèque dans le dossier "install/bin/",
-suffixés de "_pthread".
+Cette commande créera également les exécutables de tests de cette bibliothèque
+dans le dossier "install/bin/", suffixés de "_pthread".
 _________________________________________________________________________________________________________
 
 Pour afficher les graphes de comparaison entre les deux librairies, exécuter "make graphs".
