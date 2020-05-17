@@ -104,16 +104,16 @@ pthreads:
 graphs:
 	make pthreads
 	make
-	python3 ./src/graphics_drawing.py 0 10
-	python3 ./src/graphics_drawing.py 1 10
-	python3 ./src/graphics_drawing.py 2 10
-	python3 ./src/graphics_drawing.py 3 10
-	python3 ./src/graphics_drawing.py 4 10
-	python3 ./src/graphics_drawing.py 5 10
-	python3 ./src/graphics_drawing.py 6 10
-	python3 ./src/graphics_drawing.py 7 10 10
-	python3 ./src/graphics_drawing.py 8 10 10
-	python3 ./src/graphics_drawing.py 9 10
+	python3 ./src/graphics_drawing.py 0 250
+	python3 ./src/graphics_drawing.py 1 250
+	python3 ./src/graphics_drawing.py 2 250
+	python3 ./src/graphics_drawing.py 3 250
+	python3 ./src/graphics_drawing.py 4 250
+	python3 ./src/graphics_drawing.py 5 250
+	python3 ./src/graphics_drawing.py 6 250
+	python3 ./src/graphics_drawing.py 7 50
+	python3 ./src/graphics_drawing.py 8 50 50
+	python3 ./src/graphics_drawing.py 9 23
 
 
 

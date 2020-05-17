@@ -10,6 +10,9 @@ ________________________________________________________________________________
 Pour afficher les graphes de comparaison entre les deux librairies, exécuter "make graphs".
 Cette commande produira au préalable les deux librairies ainsi que leurs tests respectifs,
 puis lancera le script python produisant les différents graphes.
+Les graphes seront lancés avec 250 threads maximum, 50 pour les tests join, et jusqu'à l'itération 23 pour
+Fibonacci.
+Ne pas prendre en compte les 10 premières et 10 dernières valeurs pour les threads.
 _________________________________________________________________________________________________________
 
 Pour supprimer les librairies, ainsi que les tests, exécuter "make clean".
