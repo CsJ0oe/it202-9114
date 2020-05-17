@@ -111,8 +111,9 @@ graphs:
 	python3 ./src/graphics_drawing.py 4 10
 	python3 ./src/graphics_drawing.py 5 10
 	python3 ./src/graphics_drawing.py 6 10
-	python3 ./src/graphics_drawing.py 7 10
-	python3 ./src/graphics_drawing.py 8 10
+	python3 ./src/graphics_drawing.py 7 10 10
+	python3 ./src/graphics_drawing.py 8 10 10
+	python3 ./src/graphics_drawing.py 9 10
 
 
 
