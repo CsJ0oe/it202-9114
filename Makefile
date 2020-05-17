@@ -25,6 +25,8 @@ install: build obj/libthread$(suffix).a obj
 	cp obj/51-fibonacci${suffix}				install/bin/51-fibonacci${suffix}
 	cp obj/61-mutex${suffix}				install/bin/61-mutex${suffix}
 	cp obj/62-mutex${suffix}				install/bin/62-mutex${suffix}
+	cp obj/71-preemption${suffix}                           install/bin/71-preemption${suffix}
+	cp obj/72-signal${suffix}                               install/bin/72-signal${suffix}
 
 build: obj obj/libthread$(suffix).a
 	gcc test/01-main.c 					$(CFLAGS) -o obj/01-main${suffix}

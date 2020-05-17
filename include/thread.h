@@ -89,6 +89,7 @@ int thread_signal(int signal, void (*handler)(int));
 /* Si on compile avec -DUSE_PTHREAD, ce sont les pthreads qui sont utilisés */
 #include <sched.h>
 #include <pthread.h>
+#include <signal.h>
 #define thread_t pthread_t
 #define thread_self pthread_self
 #define thread_create(th, func, arg) pthread_create(th, NULL, func, arg)
@@ -102,7 +103,8 @@ int thread_signal(int signal, void (*handler)(int));
 #define thread_mutex_destroy      pthread_mutex_destroy
 #define thread_mutex_lock         pthread_mutex_lock
 #define thread_mutex_unlock       pthread_mutex_unlock
-
+#define thread_kill(_thr, _sig)   pthread_kill(_thr, _sig)
+#define thread_signal(_sig, _hdl) ({struct sigaction new_action; new_action.sa_handler = _hdl; sigemptyset (&new_action.sa_mask); new_action.sa_flags = 0; sigaction(_sig, &new_action, NULL);})
 #endif /* USE_PTHREAD */
 
 #endif /* __THREAD_H__ */

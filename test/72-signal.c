@@ -1,6 +1,7 @@
 #include "thread.h"
 #include <stdio.h>
 #include <assert.h>
+#include <unistd.h>
 
 void handle_sigint(int i)
 {
@@ -11,8 +12,9 @@ static void* thfunc(void *id __attribute__((unused)))
 {
   thread_yield();
   thread_yield();
-  thread_signal(0, handle_sigint);
+  thread_signal(1, handle_sigint);
   thread_signal(3, handle_sigint);
+  sleep(1);
   thread_yield();
   thread_yield();
   return NULL;
@@ -25,8 +27,9 @@ int main()
 
   err = thread_create(&th1, thfunc, NULL);
   assert(!err);
+  sleep(1);
 
-  thread_kill(th1, 0);
+  thread_kill(th1, 1);
   thread_kill(th1, 3);
   thread_yield();
   thread_yield();
