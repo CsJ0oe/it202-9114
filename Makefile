@@ -58,8 +58,40 @@ obj:
 check: build
 	./obj/51-fibonacci 27
 
-valgrind: build
-	valgrind -s --track-origins=yes --leak-check=full --show-leak-kinds=all --max-stackframe=137344398664 ./obj/12-join-main
+valgrind: all
+	valgrind ./install/bin/01-main
+	valgrind ./install/bin/02-switch
+	valgrind ./install/bin/11-join
+	valgrind ./install/bin/12-join-main
+	valgrind ./install/bin/21-create-many 20
+	valgrind ./install/bin/22-create-many-recursive 20
+	valgrind ./install/bin/23-create-many-once 20
+	valgrind ./install/bin/31-switch-many 10 20
+	valgrind ./install/bin/32-switch-many-join 10 20
+	valgrind ./install/bin/33-switch-many-cascade 20 5
+	valgrind ./install/bin/51-fibonacci 8
+	valgrind ./install/bin/61-mutex 20
+	valgrind ./install/bin/62-mutex 20
+	valgrind ./install/bin/71-preemption
+	valgrind ./install/bin/72-signal
+
+valgrind_pthread: pthreads
+	valgrind ./install/bin/01-main_pthread
+	valgrind ./install/bin/02-switch_pthread
+	valgrind ./install/bin/11-join_pthread
+	valgrind ./install/bin/12-join-main_pthread
+	valgrind ./install/bin/21-create-many_pthread 20
+	valgrind ./install/bin/22-create-many-recursive_pthread 20
+	valgrind ./install/bin/23-create-many-once_pthread 20
+	valgrind ./install/bin/31-switch-many_pthread 10 20
+	valgrind ./install/bin/32-switch-many-join_pthread 10 20
+	valgrind ./install/bin/33-switch-many-cascade_pthread 20 5
+	valgrind ./install/bin/51-fibonacci_pthread 8
+	valgrind ./install/bin/61-mutex_pthread 20
+	valgrind ./install/bin/62-mutex_pthread 20
+	valgrind ./install/bin/71-preemption_pthread
+	valgrind ./install/bin/72-signal_pthread
+
 
 clean:
 	rm -rf obj/ install/
