@@ -16,6 +16,7 @@ Pour supprimer les librairies, ainsi que les tests, exécuter "make clean".
 Cette commande permet de supprimer le dossier "install/", ainsi que celui "obj/".
 _________________________________________________________________________________________________________
 
-Pour lancer les tests sous valgrind, effectuer "make valgrind".
-Cette commande lancera tous les tests de la librairie "libthread.a".
+Pour lancer les tests de la librairie "libthread.a", exécuter "make check".
+
+Pour lancer les tests de la librairie "libthread.a" sous valgrind, effectuer "make valgrind".
 _________________________________________________________________________________________________________

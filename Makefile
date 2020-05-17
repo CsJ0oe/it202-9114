@@ -55,8 +55,6 @@ obj/libthread$(suffix).a: obj/thread$(suffix).o
 obj:
 	mkdir obj
 
-check: build
-	./obj/51-fibonacci 27
 
 valgrind: all
 	valgrind ./install/bin/01-main
@@ -106,7 +104,34 @@ pthreads:
 graphs:
 	make pthreads
 	make
-	python3 ./src/graphics_drawing.py
+	python3 ./src/graphics_drawing.py 0 10
+	python3 ./src/graphics_drawing.py 1 10
+	python3 ./src/graphics_drawing.py 2 10
+	python3 ./src/graphics_drawing.py 3 10
+	python3 ./src/graphics_drawing.py 4 10
+	python3 ./src/graphics_drawing.py 5 10
+	python3 ./src/graphics_drawing.py 6 10
+	python3 ./src/graphics_drawing.py 7 10
+	python3 ./src/graphics_drawing.py 8 10
+
+
+
+check: all
+	./install/bin/01-main
+	./install/bin/02-switch
+	./install/bin/11-join
+	./install/bin/12-join-main
+	./install/bin/21-create-many 20
+	./install/bin/22-create-many-recursive 20
+	./install/bin/23-create-many-once 20
+	./install/bin/31-switch-many 10 20
+	./install/bin/32-switch-many-join 10 20
+	./install/bin/33-switch-many-cascade 20 5
+	./install/bin/51-fibonacci 8
+	./install/bin/61-mutex 20
+	./install/bin/62-mutex 20
+	./install/bin/71-preemption
+	./install/bin/72-signal
 
 
 

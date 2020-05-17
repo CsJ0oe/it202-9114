@@ -14,8 +14,8 @@ nb_arg = 0
 if (arg_test >= 4):
     nb_arg = arg_list[arg_test-4][1]
 length = int(arg[2])
-directory_thread = "../install/bin/"
-directory_pthread = "../obj/"
+directory_thread = "./install/bin/"
+directory_pthread = "./install/bin/"
 directory= "./install/bin/"
 
 
